@@ -1,28 +1,94 @@
 import React from "react";
 import "./App.css";
+import { api } from "./services/api";
 
-import Milestone from "./components/milestone";
-
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Dashboard from "./views/Dashboard";
+const userInitialState = {
+  name: "",
+  lastName: "",
+  email: "",
+  password: "",
+  repeatPassword: "",
+};
 
 function App() {
-  const [milestones, setMilestones] = React.useState([
-    { date: " 01,01,1999", description: "hola mundo" },
-    { date: " 01,01,2000", description: "hola mundo parte 2" },
-  ]);
+  const [user, setUser] = React.useState(userInitialState);
+
+  const [loading, setLoading] = React.useState(false);
+
+  const [error, setError] = React.useState(null);
+
+  const genericChangeUser = (e) => {
+    const { id, value } = e.target;
+
+    setUser({
+      ...user,
+      [id]: value,
+    });
+  };
+
+  const tryRegistro = async () => {
+    try {
+      setLoading(true);
+
+      const response = await api({
+        method: "POST",
+        data: user,
+        endpoint: "/users/create-user",
+      });
+
+      console.log(response);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+      setError(error);
+    }
+  };
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/*" element={<Dashboard />} />
-      </Routes>
-    </BrowserRouter>
+    <div className="form">
+      <div>
+        <label>Nombre</label>
+        <input id="name" value={user.name} onChange={genericChangeUser} />
+      </div>
+      <div>
+        <label>Apellido</label>
+        <input
+          id="lastName"
+          value={user.lastName}
+          onChange={genericChangeUser}
+        />
+      </div>
+      <div>
+        <label>Correo</label>
+        <input id="email" value={user.email} onChange={genericChangeUser} />
+      </div>
+      <div>
+        <label>Contrasena</label>
+        <input
+          id="password"
+          value={user.password}
+          onChange={genericChangeUser}
+        />
+      </div>
+      <div>
+        <label>Confirmar Contrasena</label>
+        <input
+          id="repeatPassword"
+          value={user.repeatPassword}
+          onChange={genericChangeUser}
+        />
+      </div>
+
+      {error && (
+        <span style={{ color: "red" }}>Ocurrio un error en la peticion</span>
+      )}
+
+      <button disabled={loading} onClick={tryRegistro}>
+        {loading ? "Cargando..." : "Registrarme"}
+      </button>
+    </div>
   );
 }
 
 export default App;
-
-/* {milestones.map((item) => {
-  return <Milestone date={item.date} description={item.description} />;
-})} */
